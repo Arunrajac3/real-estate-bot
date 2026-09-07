@@ -26,27 +26,33 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { messages } = req.body; // Array of user/assistant messages
 
-        // Formatting chat history for Gemini API style or standard LLM endpoint
-        const formattedMessages = [
-            { role: "system", content: SYSTEM_INSTRUCTION },
-            ...messages
-        ];
+        // Map chat history correctly for Gemini API format
+        const contents = messages.map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }]
+        }));
 
-        // Replace with your preferred LLM API (e.g., OpenAI / Gemini API)
-        // Here is a structured mockup format using standard API call structure:
+        // Send request to Gemini 1.5 Flash API with proper system instruction and contents
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: formattedMessages.map(m => ({
-                    role: m.role === 'system' ? 'user' : m.role === 'assistant' ? 'model' : 'user',
-                    parts: [{ text: m.content }]
-                }))
+                system_instruction: {
+                    parts: [{ text: SYSTEM_INSTRUCTION }]
+                },
+                contents: contents
             })
         });
 
         const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hi there! How can I help you find your dream home today?";
+
+        // Check if Gemini API returned an error
+        if (data.error) {
+            console.error("Gemini API Error:", data.error);
+            return res.status(500).json({ reply: "Sorry, I encountered an issue processing your request." });
+        }
+
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm here to help you find your dream home today!";
 
         res.json({ reply });
     } catch (error) {
