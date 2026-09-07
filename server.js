@@ -31,7 +31,8 @@ app.post('/api/chat', async (req, res) => {
             parts: [{ text: m.content }]
         }));
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        // Updated model endpoint path to gemini-1.5-flash-latest
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -44,7 +45,6 @@ app.post('/api/chat', async (req, res) => {
 
         const data = await response.json();
 
-        // If Gemini returns an error, send the exact error message to the chat interface for debugging
         if (data.error) {
             console.error("Gemini API Error:", data.error);
             return res.json({ reply: `API Error: ${data.error.message || JSON.stringify(data.error)}` });
