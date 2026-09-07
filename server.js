@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const path = require('path');
 const fetch = require('node-fetch');
 require('dotenv').config();
@@ -53,6 +53,10 @@ app.post('/api/chat', async (req, res) => {
         console.error("Error:", error);
         res.status(500).json({ reply: "Sorry, I'm having trouble connecting right now. Please call our office directly!" });
     }
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 app.listen(PORT, () => {
